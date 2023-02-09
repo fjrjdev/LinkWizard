@@ -1,3 +1,12 @@
 from django.db import models
+import uuid
 
-# Create your models here.
+
+class Link(models.Model):
+    id = models.UUIDField(default=uuid.uuid4(), primary_key=True)
+    label = models.CharField(max_length=255)
+    url = models.URLField(max_length=255)
+
+    user = models.ForeignKey(
+        "users.User", on_delete=models.CASCADE, related_name="link"
+    )
