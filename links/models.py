@@ -7,6 +7,8 @@ class Link(models.Model):
     label = models.CharField(max_length=255)
     url = models.URLField(max_length=255)
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="link"
     )
