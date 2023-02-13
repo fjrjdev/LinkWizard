@@ -6,7 +6,6 @@ from rest_framework.views import Response, status
 from .models import Link
 from .serializers import LinkSerializer, LinkDetailSerializer
 from .permissions import IsAdminOwnerLink
-from rest_framework.exceptions import AuthenticationFailed
 
 
 class LinkView(ListCreateAPIView):
