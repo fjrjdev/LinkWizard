@@ -14,6 +14,7 @@ from pathlib import Path
 
 import dotenv
 import os
+
 dotenv.load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -42,11 +43,23 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
-THIRD_PARY_APPS = ["rest_framework", "rest_framework.authtoken"]
+THIRD_PARY_APPS = ["rest_framework", "rest_framework.authtoken", "drf_spectacular"]
 
 MY_APPS = ["users", "links"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARY_APPS + MY_APPS
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Links Api",
+    "DESCRIPTION": "Uma API para gerenciar links que permite aos usuários armazenar e organizar links com informações básicas, como URL e título/label.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SCHEMA_PATH_PREFIX": "/api/",
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
