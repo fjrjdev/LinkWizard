@@ -1,27 +1,27 @@
-from rest_framework.views import APIView, Request, Response
+from rest_framework.views import APIView, Request, Response, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 
-import requests
-from bs4 import BeautifulSoup
+import uuid
 
-from .serializers import CrawledDataSerializer
+from .crawler import crawler
+
 from links.models import Link
 from links.permissions import IsAdminOwnerLink
-import uuid
+from links.serializers import LinkSerializer
 
 
 class CrawlerView(APIView):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAdminOwnerLink, IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         data = crawler()
-
         links_created = []
         for link in data:
             obj, created = Link.objects.get_or_create(
                 url=link.get("url"),
+                user=self.request.user,
                 defaults={
                     "id": uuid.uuid4(),
                     "url": link.get("url"),
@@ -33,25 +33,10 @@ class CrawlerView(APIView):
                 links_created.append(obj)
 
         if links_created:
-            serializer = CrawledDataSerializer(links_created, many=True)
-            return Response(serializer.data)
+            serializer = LinkSerializer(links_created, many=True)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-        return Response({"detail": "Links já foram coletados anteriormente"})
-
-
-def crawler(url="https://devgo.com.br"):
-    response = requests.get(url)
-    url_list = []
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, "html.parser")
-        h1_tags = soup.find_all("h1")
-        for h1_tag in h1_tags:
-            a_tag = h1_tag.find("a")
-            href = a_tag["href"]
-            text = a_tag.text
-            if href and href.startswith("/"):
-                href = url + href
-            if href != url + "/":
-                url_list.append({"url": href, "label": text})
-
-    return url_list
+        return Response(
+            data={"detail": "Links já foram coletados anteriormente"},
+            status=status.HTTP_200_OK,
+        )
