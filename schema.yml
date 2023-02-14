@@ -1,0 +1,333 @@
+openapi: 3.0.3
+info:
+  title: Links Api
+  version: 1.0.0
+  description:
+    Uma API para gerenciar links que permite aos usuários armazenar e organizar
+    links com informações básicas, como URL e título/label.
+paths:
+  /api/create/:
+    post:
+      operationId: create_create
+      tags:
+        - create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/User"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      security:
+        - cookieAuth: []
+        - basicAuth: []
+        - {}
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: ""
+  /api/links/:
+    get:
+      operationId: links_list
+      tags:
+        - links
+      security:
+        - tokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Link"
+          description: ""
+    post:
+      operationId: links_create
+      tags:
+        - links
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Link"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Link"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Link"
+        required: true
+      security:
+        - tokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Link"
+          description: ""
+  /api/links/{id}/:
+    get:
+      operationId: links_retrieve
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          description: A UUID string identifying this link.
+          required: true
+      tags:
+        - links
+      security:
+        - tokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkDetail"
+          description: ""
+    put:
+      operationId: links_update
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          description: A UUID string identifying this link.
+          required: true
+      tags:
+        - links
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkDetail"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/LinkDetail"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/LinkDetail"
+        required: true
+      security:
+        - tokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkDetail"
+          description: ""
+    patch:
+      operationId: links_partial_update
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          description: A UUID string identifying this link.
+          required: true
+      tags:
+        - links
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchedLinkDetail"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PatchedLinkDetail"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PatchedLinkDetail"
+      security:
+        - tokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkDetail"
+          description: ""
+    delete:
+      operationId: links_destroy
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          description: A UUID string identifying this link.
+          required: true
+      tags:
+        - links
+      security:
+        - tokenAuth: []
+      responses:
+        "204":
+          description: No response body
+  /api/login/:
+    post:
+      operationId: login_create
+      tags:
+        - login
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/AuthToken"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/AuthToken"
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthToken"
+        required: true
+      security:
+        - cookieAuth: []
+        - basicAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthToken"
+          description: ""
+components:
+  schemas:
+    AuthToken:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        token:
+          type: string
+          readOnly: true
+      required:
+        - password
+        - token
+        - username
+    Link:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+          maxLength: 255
+        url:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+        - label
+        - url
+    LinkDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+          maxLength: 255
+        url:
+          type: string
+          format: uri
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+      required:
+        - created_at
+        - label
+        - updated_at
+        - url
+        - user
+    PatchedLinkDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+          maxLength: 255
+        url:
+          type: string
+          format: uri
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 200
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        is_active:
+          type: boolean
+          title: Active
+          description:
+            Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+      required:
+        - email
+        - password
+        - username
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
