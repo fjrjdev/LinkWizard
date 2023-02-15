@@ -59,20 +59,16 @@ class CrawlerView(APIView):
 
 def process_data(future):
     global user
-    try:
-        data = future.result()
+    data = future.result()
 
-        for link in data:
-            obj, created = Link.objects.get_or_create(
-                url=link.get("url"),
-                user=user,
-                defaults={
-                    "id": uuid.uuid4(),
-                    "url": link.get("url"),
-                    "label": link.get("label"),
-                    "user": user,
-                },
-            )
-
-    except Exception as e:
-        print(e)
+    for link in data:
+        obj, created = Link.objects.get_or_create(
+            url=link.get("url"),
+            user=user,
+            defaults={
+                "id": uuid.uuid4(),
+                "url": link.get("url"),
+                "label": link.get("label"),
+                "user": user,
+            },
+        )
