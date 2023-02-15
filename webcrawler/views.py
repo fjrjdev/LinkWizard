@@ -5,11 +5,10 @@ from rest_framework.authentication import TokenAuthentication
 import uuid
 import django
 
-from .crawler import DevgoSpider, iniciar_crawler
+from .crawler import DevgoSpider
 
 from links.models import Link
 from links.permissions import IsAdminOwnerLink
-from links.serializers import LinkSerializer
 
 from concurrent.futures import ProcessPoolExecutor
 from scrapy.crawler import CrawlerRunner, CrawlerProcess
@@ -51,7 +50,12 @@ class CrawlerView(APIView):
         ) as executor:
             future1 = executor.submit(run_spider, DevgoSpider)
             future1.add_done_callback(process_data)
-        return Response(status=status.HTTP_202_ACCEPTED)
+        return Response(
+            data={
+                "message": "Sua solicitação foi recebida com sucesso e está em processo de execução. Por favor, aguarde enquanto processamos seus dados"
+            },
+            status=status.HTTP_202_ACCEPTED,
+        )
 
 
 def process_data(future):
