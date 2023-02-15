@@ -4,18 +4,17 @@ from rest_framework.authentication import TokenAuthentication
 
 import uuid
 import django
-
-from .crawler import DevgoSpider
+import multiprocessing
 
 from links.models import Link
-from links.permissions import IsAdminOwnerLink
 
 from concurrent.futures import ProcessPoolExecutor
 from scrapy.crawler import CrawlerRunner, CrawlerProcess
 from scrapy import signals
 from scrapy.utils.log import configure_logging
-from twisted.internet import reactor, defer
-import multiprocessing
+
+
+from .crawler import DevgoSpider
 
 
 def run_spider(spider):
@@ -48,8 +47,8 @@ class CrawlerView(APIView):
             mp_context=multiprocessing.get_context("spawn"),
             initializer=django.setup,
         ) as executor:
-            future1 = executor.submit(run_spider, DevgoSpider)
-            future1.add_done_callback(process_data)
+            future = executor.submit(run_spider, DevgoSpider)
+            future.add_done_callback(process_data)
         return Response(
             data={
                 "message": "Sua solicitação foi recebida com sucesso e está em processo de execução. Por favor, aguarde enquanto processamos seus dados"
