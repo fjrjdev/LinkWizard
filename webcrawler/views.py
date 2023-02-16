@@ -32,23 +32,20 @@ def run_spider(spider):
     return items
 
 
-user = None
-
-
 class CrawlerView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    user = None
 
     def get(self, request: Request) -> Response:
-        global user
-        user = self.request.user
+        self.user = self.request.user
         with ProcessPoolExecutor(
             max_workers=4,
             mp_context=multiprocessing.get_context("spawn"),
             initializer=django.setup,
         ) as executor:
             future = executor.submit(run_spider, DevgoSpider)
-            future.add_done_callback(process_data)
+            future.add_done_callback(self.process_data)
         return Response(
             data={
                 "message": "Sua solicitação foi recebida com sucesso e está em processo de execução. Por favor, aguarde enquanto processamos seus dados"
@@ -56,19 +53,16 @@ class CrawlerView(APIView):
             status=status.HTTP_202_ACCEPTED,
         )
 
-
-def process_data(future):
-    global user
-    data = future.result()
-
-    for link in data:
-        obj, created = Link.objects.get_or_create(
-            url=link.get("url"),
-            user=user,
-            defaults={
-                "id": uuid.uuid4(),
-                "url": link.get("url"),
-                "label": link.get("label"),
-                "user": user,
-            },
-        )
+    def process_data(self, future):
+        data = future.result()
+        for link in data:
+            obj, created = Link.objects.get_or_create(
+                url=link.get("url"),
+                user=self.user,
+                defaults={
+                    "id": uuid.uuid4(),
+                    "url": link.get("url"),
+                    "label": link.get("label"),
+                    "user": self.user,
+                },
+            )
