@@ -3,12 +3,36 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 
 import uuid
-
-from .crawler import crawler
+import django
+import multiprocessing
 
 from links.models import Link
-from links.permissions import IsAdminOwnerLink
-from links.serializers import LinkSerializer
+
+from concurrent.futures import ProcessPoolExecutor
+from scrapy.crawler import CrawlerRunner, CrawlerProcess
+from scrapy import signals
+from scrapy.utils.log import configure_logging
+
+
+from .crawler import DevgoSpider
+
+
+def run_spider(spider):
+    items = []
+
+    def item_scraped(item, response, spider):
+        items.append(item)
+
+    configure_logging()
+    process = CrawlerProcess()
+    crawler = process.create_crawler(spider)
+    crawler.signals.connect(item_scraped, signal=signals.item_scraped)
+    process.crawl(crawler)
+    process.start()
+    return items
+
+
+user = None
 
 
 class CrawlerView(APIView):
@@ -16,27 +40,35 @@ class CrawlerView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
-        data = crawler()
-        links_created = []
-        for link in data:
-            obj, created = Link.objects.get_or_create(
-                url=link.get("url"),
-                user=self.request.user,
-                defaults={
-                    "id": uuid.uuid4(),
-                    "url": link.get("url"),
-                    "label": link.get("label"),
-                    "user": self.request.user,
-                },
-            )
-            if created:
-                links_created.append(obj)
-
-        if links_created:
-            serializer = LinkSerializer(links_created, many=True)
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-
+        global user
+        user = self.request.user
+        with ProcessPoolExecutor(
+            max_workers=4,
+            mp_context=multiprocessing.get_context("spawn"),
+            initializer=django.setup,
+        ) as executor:
+            future = executor.submit(run_spider, DevgoSpider)
+            future.add_done_callback(process_data)
         return Response(
-            data={"detail": "Links já foram coletados anteriormente"},
-            status=status.HTTP_200_OK,
+            data={
+                "message": "Sua solicitação foi recebida com sucesso e está em processo de execução. Por favor, aguarde enquanto processamos seus dados"
+            },
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+
+def process_data(future):
+    global user
+    data = future.result()
+
+    for link in data:
+        obj, created = Link.objects.get_or_create(
+            url=link.get("url"),
+            user=user,
+            defaults={
+                "id": uuid.uuid4(),
+                "url": link.get("url"),
+                "label": link.get("label"),
+                "user": user,
+            },
         )
