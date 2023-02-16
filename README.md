@@ -8,7 +8,7 @@ O projeto possui as seguintes APIs RESTful:
 
 - `POST /api/create`: Cadastra um novo usuário no sistema.
 - `POST /api/login`: Loga o usuário no sistema.
-- `GET /api/links`: Retorna a lista de links pelo usuario.
+- `GET /api/links`: Retorna a lista de links criados pelo usuario.
 - `POST /api/links`: Cria um novo link.
 - `GET /api/webcrawler/start`: Inicia um webcrawler para extrair as urls do site [Devgo](https://devgo.com.br/).
 
