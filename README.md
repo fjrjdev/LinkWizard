@@ -1,4 +1,4 @@
-# Links Api
+# LinkWizard
 
 Essa aplicação de gerenciamento de links permite criar, ler, atualizar e excluir links com uma URL e um título/label. Com esta API, os usuários podem gerenciar facilmente sua lista de links favoritos ou importantes, bem como compartilhar links com outras pessoas. Os usuários podem criar novos links, visualizar links existentes, editar o título/label ou a URL dos links e excluir links indesejados.
 
